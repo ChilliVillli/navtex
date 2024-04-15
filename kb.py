@@ -26,6 +26,9 @@ types_kb = ReplyKeyboardMarkup(
             KeyboardButton(text='G (AIS)'),
             KeyboardButton(text='H (LORAN messages)'),
             KeyboardButton(text='L (Navigational warnings)')
+        ],
+        [
+            KeyboardButton(text='*')
         ]
     ],
     resize_keyboard=True,

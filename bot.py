@@ -58,31 +58,66 @@ async def area(message: Message, state: FSMContext):
     Area = data['area']
     Types = data['types']
     await state.clear()
+    return await search(Area, Types)
+    # while True:
 
-    while True:
+        # headers = {'User-agent': ua.random}
+        # session = requests.Session()
+        # session.headers.update(headers)
+        # url = 'https://navtex.lv/'
+        # data_navtex = {'p_date': datetime.now().date(),
+        #                'p_area': Area,
+        #                'p_type': Types
+        #                }
+        # response = session.post(url, verify=False, data=data_navtex, headers=headers)
+        # await asyncio.sleep(1)
+        # soup = bs(response.text, 'lxml')
 
-        # await asyncio.sleep(2)
-        headers = {'User-agent': ua.random}
-        session = requests.Session()
-        session.headers.update(headers)
-        url = 'https://navtex.lv/'
-        data_navtex = {'p_date': datetime.now().date(),
-                       'p_area': Area,
-                       'p_type': Types
-                       }
-        response = session.post(url, verify=False, data=data_navtex, headers=headers)
-        soup = bs(response.text, 'lxml')
 
-        for i in soup.find_all('pre'):
+async def search(Area, Types):
 
-            if i not in info:
-                info.append(i.text)
-                await message.answer(i.text)
+    headers = {'User-agent': ua.random}
+    session = requests.Session()
+    session.headers.update(headers)
+    url = 'https://navtex.lv/'
+    data_navtex = {'p_date': datetime.now().date(),
+                   'p_area': Area,
+                   'p_type': Types
+                   }
+    response = session.post(url, verify=False, data=data_navtex, headers=headers)
+    await asyncio.sleep(1)
+    soup = bs(response.text, 'lxml')
+    return await base(soup)
+
+
+async def base(soup):
+
+    for i in soup.find_all('pre'):
+
+        await asyncio.sleep(1)
+
+        for count, data_time in enumerate(soup.find_all('h4')):
+
+            if count == 0:
+                continue
+
+            if data_time.text not in info:
+                # await message.answer(f"{data_time.text}\n{i.text}")
+                print(f"{data_time.text}\n{i.text}")
+                info.append(data_time.text)
+                await asyncio.sleep(2)
+                break
             else:
                 continue
 
 
-async def search():
+async def input(message: Message):
     pass
+    # while True:
+    #
+    #     await search()
+    #     await message.answer(f"{data_time.text}\n{i.text}")
+
+
 
 
