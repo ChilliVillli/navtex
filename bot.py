@@ -1,15 +1,19 @@
 import asyncio
+import requests
+from datetime import datetime
+
 from aiogram import Router, F
 from aiogram.fsm.state import StatesGroup, State
-from bs4 import BeautifulSoup as bs
-import requests
-from fake_useragent import UserAgent
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
-from kb import menu, types_kb
 from aiogram.fsm.context import FSMContext
-from datetime import datetime
+from bs4 import BeautifulSoup as bs
+from fake_useragent import UserAgent
+
+
+from kb import menu, types_kb
+from loader import scheduler
 
 
 ua = UserAgent()
@@ -64,10 +68,31 @@ async def types_state(message: Message, state: FSMContext):
     area = data['area']
     types = data['types']
     await state.clear()
-    await get_soup(area, types)
+
+
+    # Тут Задачу запускаем в первый раз для сбора данных
+    await example_search(message, area, types, True)
+    # Тут Задачу закидываем чтобы она проверяла что то новое
+    scheduler.add_job(example_search, "interval", seconds=5, args=(message, area, types, False))
+
+
+    # А это запусти
+    # await search(message, area, types, True)
+    # scheduler.add_job(search, "interval", seconds=5, args=(message, area, types, False))
+
+
+async def example_search(message, area, types, first):
+    """Просто потом удали эту функцию))"""
+    
+    if not first:
+        await message.answer("Задача интервальная")
 
 
 async def get_soup(area, types):
+    """Получить "soup".
+    Функция делает запрос к ресурсу, 
+    создает и возвращает объект Beautiful Soup.
+    """
 
     headers = {'User-agent': ua.random}
     session = requests.Session()
@@ -80,31 +105,14 @@ async def get_soup(area, types):
     response = session.post(url, verify=False, data=data_navtex, headers=headers)
     await asyncio.sleep(1)
     soup = bs(response.text, 'lxml')
-
-    for i in soup.find_all('pre'):
-
-        description = i.text
-        # await asyncio.sleep(1)
-
-        for count, j in enumerate(soup.find_all('h4')):
-
-            if count == 0:
-                continue
-
-            data_time = j.text
-
-            if data_time not in info:
-                # print(f"{data_time}\n{description}")
-                info.append(data_time)
-                # await asyncio.sleep(2)
-                break
-            else:
-                continue
-
     return soup
 
 
-async def search(message, soup):
+async def search(message, area, types, first):
+    """Мне кажется достаточно этой функции, просто запускать её каждый раз и все
+    Она все равно отправляет сообщение только тогда когда что то новое находит
+    """
+    soup = await get_soup(area, types)
 
     for i in soup.find_all('pre'):
 
@@ -119,21 +127,11 @@ async def search(message, soup):
             data_time = j.text
 
             if data_time not in info:
-                await message.answer(description)
+                if not first:
+                    await message.answer(description)
                 # print(f"{data_time}\n{description}")
                 info.append(data_time)
                 # await asyncio.sleep(2)
                 break
             else:
                 continue
-
-
-async def input_navtex(message: Message, description, data_time):
-
-    pass
-
-
-
-
-
-
