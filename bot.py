@@ -68,14 +68,25 @@ async def types_state(message: Message, state: FSMContext):
     area = data['area']
     types = data['types']
     await state.clear()
-    scheduler.add_job(example_search, "interval", seconds=5, args=(message, area, types))
+
+
+    # Тут Задачу запускаем в первый раз для сбора данных
+    await example_search(message, area, types, True)
+    # Тут Задачу закидываем чтобы она проверяла что то новое
+    scheduler.add_job(example_search, "interval", seconds=5, args=(message, area, types, False))
+
+
     # А это запусти
-    # scheduler.add_job(search, "interval", seconds=5, args=(message, area, types))
+    # await search(message, area, types, True)
+    # scheduler.add_job(search, "interval", seconds=5, args=(message, area, types, False))
 
 
-async def example_search(message, area, types):
+async def example_search(message, area, types, first):
     """Просто потом удали эту функцию))"""
-    await message.answer("Задача запущена снова")
+    
+    if not first:
+        await message.answer("Задача интервальная")
+
 
 async def get_soup(area, types):
     """Получить "soup".
@@ -97,7 +108,7 @@ async def get_soup(area, types):
     return soup
 
 
-async def search(message, area, types):
+async def search(message, area, types, first):
     """Мне кажется достаточно этой функции, просто запускать её каждый раз и все
     Она все равно отправляет сообщение только тогда когда что то новое находит
     """
@@ -116,7 +127,8 @@ async def search(message, area, types):
             data_time = j.text
 
             if data_time not in info:
-                await message.answer(description)
+                if not first:
+                    await message.answer(description)
                 # print(f"{data_time}\n{description}")
                 info.append(data_time)
                 # await asyncio.sleep(2)
