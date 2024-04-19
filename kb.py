@@ -1,5 +1,16 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
+
+menu_admin = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text='Условия для поиска'),
+            KeyboardButton(text='Users')
+        ]
+    ],
+    resize_keyboard=True
+)
+
 menu = ReplyKeyboardMarkup(
     keyboard=[
         [
@@ -33,4 +44,14 @@ types_kb = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,
     one_time_keyboard=True
+)
+
+
+cancel = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text='отмена поиска')
+        ]
+    ],
+    resize_keyboard=True
 )
