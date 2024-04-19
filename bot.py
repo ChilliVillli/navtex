@@ -78,8 +78,28 @@ async def types_state(message: Message, state: FSMContext):
     types = data['types']
     await state.clear()
     await message.answer("Приступаю к поиску!", reply_markup=cancel)
+    await example_search(area, types)
     await search(message, area, types, True)
     scheduler.add_job(search, "interval", seconds=60, args=(message, area, types, False))
+
+
+async def example_search(area, types):
+
+    soup = await get_soup(area, types)
+
+    for count, j in enumerate(soup.find_all('h4')):
+
+        if count == 0:
+            continue
+
+        data_time = j.text
+
+        if data_time not in info:
+            info.append(data_time)
+            # print(data_time)
+            # await asyncio.sleep(3)
+        else:
+            continue
 
 
 async def get_soup(area, types):
@@ -96,20 +116,19 @@ async def get_soup(area, types):
     await asyncio.sleep(2)
     soup = bs(response.text, 'lxml')
 
-
-    for count, j in enumerate(soup.find_all('h4')):
-
-        if count == 0:
-            continue
-
-        data_time = j.text
-
-        if data_time not in info:
-            info.append(data_time)
-            print(data_time)
-            # await asyncio.sleep(3)
-        else:
-            continue
+    # for count, j in enumerate(soup.find_all('h4')):
+    #
+    #     if count == 0:
+    #         continue
+    #
+    #     data_time = j.text
+    #
+    #     if data_time not in info:
+    #         info.append(data_time)
+    #         print(data_time)
+    #         # await asyncio.sleep(3)
+    #     else:
+    #         continue
 
     return soup
 
@@ -133,11 +152,12 @@ async def search(message, area, types, first):
             data_time = j.text
 
             if data_time not in info:
-                await message.answer(f"{data_time}\n{description}")
+                # await message.answer(f"{data_time}\n{description}")
                 if not first:
-                    await message.answer(description)
+                    await message.answer(f"{data_time}\n{description}")
                 info.append(data_time)
                 await asyncio.sleep(2)
-                break
+                continue
             else:
                 continue
+        break
